@@ -52,13 +52,16 @@
 		this.questionsCount = this.questions.length;
 		// show first question
 		classie.addClass( this.questions[0], 'current' );
-		
+
+		// previous question control
+		this.ctrlPrev = this.el.querySelector( 'button.prev' );
+
 		// next question control
 		this.ctrlNext = this.el.querySelector( 'button.next' );
 
 		// progress bar
 		this.progress = this.el.querySelector( 'div.progress' );
-		
+
 		// question number status
 		this.questionStatus = this.el.querySelector( 'span.number' );
 		// current question placeholder
@@ -95,7 +98,7 @@
 		// show next question
 		this.ctrlNext.addEventListener( 'click', function( ev ) { 
 			ev.preventDefault();
-			self._nextQuestion(); 
+			self._nextQuestion('next'); 
 		} );
 
 		// pressing enter will jump to next question
@@ -104,8 +107,14 @@
 			// enter
 			if( keyCode === 13 ) {
 				ev.preventDefault();
-				self._nextQuestion();
+				self._nextQuestion('next');
 			}
+		} );
+
+		// show prev question
+		this.ctrlPrev.addEventListener( 'click', function( ev ) { 
+			ev.preventDefault();
+			self._nextQuestion('prev'); 
 		} );
 
 		// disable tab
@@ -118,8 +127,8 @@
 		} );
 	};
 
-	stepsForm.prototype._nextQuestion = function() {
-		if( !this._validate() ) {
+	stepsForm.prototype._nextQuestion = function(direction) {
+		if( !this._validate() && direction === 'next' ) {
 			return false;
 		}
 
@@ -152,15 +161,19 @@
 		// current question
 		var currentQuestion = this.questions[ this.current ];
 
-		// increment current question iterator
-		++this.current;
+		// increment or decrement current question iterator
+		if (direction === 'next') {
+			++this.current;
+		} else {
+			--this.current;
+		}
 
 		// update progress bar
 		this._progress();
 
-		if( !this.isFilled ) {
+		if( direction === 'prev' || !this.isFilled ) {
 			// change the current question number/status
-			this._updateQuestionNumber();
+			this._updateQuestionNumber(direction);
 
 			// add class "show-next" to form element (start animations)
 			classie.addClass( this.el, 'show-next' );
@@ -187,6 +200,12 @@
 					self.questionStatus.removeChild( self.nextQuestionNum );
 					// force the focus on the next input
 					nextQuestion.querySelector( 'input' ).focus();
+					// show prev button
+					if ( Number( self.currentNum.innerHTML ) < 2 ) {
+						classie.removeClass( self.ctrlPrev, 'show' );
+					} else {
+						classie.addClass( self.ctrlPrev, 'show' );
+					}
 				}
 			};
 
@@ -204,7 +223,7 @@
 	}
 
 	// changes the current question number
-	stepsForm.prototype._updateQuestionNumber = function() {
+	stepsForm.prototype._updateQuestionNumber = function(direction) {
 		// first, create next question number placeholder
 		this.nextQuestionNum = document.createElement( 'span' );
 		this.nextQuestionNum.className = 'number-next';
