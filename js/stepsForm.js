@@ -196,12 +196,12 @@
 		else {
 			onEndTransitionFn();
 		}
-	}
+	};
 
 	// updates the progress bar by setting its width
 	stepsForm.prototype._progress = function() {
 		this.progress.style.width = this.current * ( 100 / this.questionsCount ) + '%';
-	}
+	};
 
 	// changes the current question number
 	stepsForm.prototype._updateQuestionNumber = function() {
@@ -211,12 +211,12 @@
 		this.nextQuestionNum.innerHTML = Number( this.current + 1 );
 		// insert it in the DOM
 		this.questionStatus.appendChild( this.nextQuestionNum );
-	}
+	};
 
 	// submits the form
 	stepsForm.prototype._submit = function() {
 		this.options.onSubmit( this.el );
-	}
+	};
 
 	// TODO (next version..)
 	// the validation function
@@ -229,7 +229,7 @@
 		}
 
 		return true;
-	}
+	};
 
 	// TODO (next version..)
 	stepsForm.prototype._showError = function( err ) {
@@ -247,12 +247,12 @@
 		};
 		this.error.innerHTML = message;
 		classie.addClass( this.error, 'show' );
-	}
+	};
 
 	// clears/hides the current error message
 	stepsForm.prototype._clearError = function() {
 		classie.removeClass( this.error, 'show' );
-	}
+	};
 
 	// add to global namespace
 	window.stepsForm = stepsForm;
