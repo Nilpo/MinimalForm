@@ -70,11 +70,14 @@
 
 		// error message
 		this.error = this.el.querySelector( 'span.error-message' );
-		
+
 		// checks for HTML5 Form Validation support
 		// a cleaner solution might be to add form validation to the custom Modernizr script
-		this.supportsHTML5Forms = typeof document.createElement("input").checkValidity === 'function';
-		
+		this.supportsHTML5Forms = typeof document.createElement( 'input' ).checkValidity === 'function';
+
+		// checks for HTML5 Placeholder text support
+		this.supportsPlaceholders = ( 'placeholder' in document.createElement( 'input' ) );
+
 		// init events
 		this._initEvents();
 	};
@@ -91,6 +94,16 @@
 
 		// show the next question control first time the input gets focused
 		firstElInput.addEventListener( 'focus', onFocusStartFn );
+
+		// go
+		if ( this.supportsPlaceholders ) {
+			var label = firstElInput.parentNode.querySelector( 'label' );
+			if ( label.htmlFor === firstElInput.id ) {
+				firstElInput.placeholder = label.innerHTML;
+				this._hideLabel( label );
+			}
+		}
+		this._showPlaceholder();
 
 		// show next question
 		this.ctrlNext.addEventListener( 'click', function( ev ) { 
@@ -162,6 +175,15 @@
 			// change the current question number/status
 			this._updateQuestionNumber();
 
+			if ( this.supportsPlaceholders ) {
+				var input = this.questions[ this.current ].querySelector( 'input' );
+				var label = input.parentNode.querySelector( 'label' );
+				if ( label.htmlFor === input.id && input.placeholder === '' ) {
+					input.placeholder = label.innerHTML;
+					this._hideLabel( label );
+				}
+			}
+
 			// add class "show-next" to form element (start animations)
 			classie.addClass( this.el, 'show-next' );
 
@@ -188,6 +210,7 @@
 					// force the focus on the next input
 					nextQuestion.querySelector( 'input' ).focus();
 				}
+				self._showPlaceholder();
 			};
 
 		if( support.transitions ) {
@@ -254,7 +277,75 @@
 		classie.removeClass( this.error, 'show' );
 	}
 
+	stepsForm.prototype._showPlaceholder = function() {
+		if ( this.supportsPlaceholders ) {
+			var input = this.questions[ this.current ].querySelector( 'input' );
+			var label = input.parentNode.querySelector( 'label' );
+//			if ( label.htmlFor === input.id && input.placeholder === '' ) {
+//				input.placeholder = label.innerHTML;
+//				this._hideLabel( label );
+//			}
+			input.addEventListener( 'keypress', this._showLabel );
+		}
+	}
+
+	stepsForm.prototype._hideLabel = function( el ) {
+		el.style.position = 'relative';
+		el.style.top = '50px';
+		el.style.opacity = '0';
+	}
+
+	stepsForm.prototype._showLabel = function( event ) {
+		event.target.placeholder = null;
+		event.target.removeEventListener( 'keypress', stepsForm.prototype._showLabel );
+		labelEl = event.target.parentNode.querySelector( 'label' );
+		labelPos = 50;
+		i = 0;
+		moveLabel();
+	}
+
 	// add to global namespace
 	window.stepsForm = stepsForm;
+
+	// set up animation
+	var timer;
+	var requestAnimationFrame = window.requestAnimationFrame ||
+				    window.mozRequestAnimationFrame ||
+				    window.webkitRequestAnimationFrame ||
+				    window.msRequestAnimationFrame ||
+				    function( callback ) {
+				            timer = window.setTimeout( callback, 1000 / 60 );
+				    }
+	;
+
+	var cancelAnimationFrame = window.cancelAnimationFrame ||
+				   window.mozCancelAnimationFrame ||
+				   window.webkitCancelAnimationFrame ||
+				   window.msCancelAnimationFrame ||
+				   function() {
+				           window.clearTimeout( timer );
+				   }
+	;
+
+	// placeholders for label position, element, animation handle, and iterator
+	var labelPos, labelEl, handle, i;
+
+	function moveLabel() {
+		i++;
+		if ( i <= 29/2 ) labelPos -= 4;
+		if ( i > 29/2 ) labelPos += 4;
+
+		labelEl.style.top = labelPos + 'px';
+		if ( i <= 29*2 ) {
+			labelEl.style.opacity = ( 100 - labelPos * 2 ) / 100;
+			labelEl.style.filter  = 'alpha(opacity=' + ( 100 - labelPos * 2 ) + ')'; // IE fallback
+		}
+
+		handle = requestAnimationFrame( moveLabel );
+
+		if ( i >= 33/2 ) {
+			cancelAnimationFrame( handle );
+		}
+	}
 
 })( window );
