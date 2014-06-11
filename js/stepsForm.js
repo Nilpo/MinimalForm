@@ -95,14 +95,7 @@
 		// show the next question control first time the input gets focused
 		firstElInput.addEventListener( 'focus', onFocusStartFn );
 
-		// go
-		if ( this.supportsPlaceholders ) {
-			var label = firstElInput.parentNode.querySelector( 'label' );
-			if ( label.htmlFor === firstElInput.id ) {
-				firstElInput.placeholder = label.innerHTML;
-				this._hideLabel( label );
-			}
-		}
+		// hide label and set placeholder text, if available
 		this._showPlaceholder();
 
 		// show next question
@@ -175,14 +168,8 @@
 			// change the current question number/status
 			this._updateQuestionNumber();
 
-			if ( this.supportsPlaceholders ) {
-				var input = this.questions[ this.current ].querySelector( 'input' );
-				var label = input.parentNode.querySelector( 'label' );
-				if ( label.htmlFor === input.id && input.placeholder === '' ) {
-					input.placeholder = label.innerHTML;
-					this._hideLabel( label );
-				}
-			}
+			// hide label and set placeholder text before form animation begins
+			this._showPlaceholder();
 
 			// add class "show-next" to form element (start animations)
 			classie.addClass( this.el, 'show-next' );
@@ -210,7 +197,8 @@
 					// force the focus on the next input
 					nextQuestion.querySelector( 'input' ).focus();
 				}
-				self._showPlaceholder();
+				// show placeholder text after animation completes
+				//self._addPlaceholderListener();
 			};
 
 		if( support.transitions ) {
@@ -277,24 +265,28 @@
 		classie.removeClass( this.error, 'show' );
 	}
 
+	// uses the label text to set placeholder text
 	stepsForm.prototype._showPlaceholder = function() {
 		if ( this.supportsPlaceholders ) {
 			var input = this.questions[ this.current ].querySelector( 'input' );
 			var label = input.parentNode.querySelector( 'label' );
-//			if ( label.htmlFor === input.id && input.placeholder === '' ) {
-//				input.placeholder = label.innerHTML;
-//				this._hideLabel( label );
-//			}
-			input.addEventListener( 'keypress', this._showLabel );
+			if ( label.htmlFor === input.id ) {
+				input.placeholder = label.innerHTML;
+				this._hideLabel( label );
+				// add a listener to the input that start label animation
+				input.addEventListener( 'keypress', this._showLabel );
+			}
 		}
 	}
 
+	// hide an input label
 	stepsForm.prototype._hideLabel = function( el ) {
 		el.style.position = 'relative';
 		el.style.top = '50px';
 		el.style.opacity = '0';
 	}
 
+	// remove placeholder and start the label animation
 	stepsForm.prototype._showLabel = function( event ) {
 		event.target.placeholder = null;
 		event.target.removeEventListener( 'keypress', stepsForm.prototype._showLabel );
@@ -330,6 +322,7 @@
 	// placeholders for label position, element, animation handle, and iterator
 	var labelPos, labelEl, handle, i;
 
+	// label animation loop
 	function moveLabel() {
 		i++;
 		if ( i <= 29/2 ) labelPos -= 4;
