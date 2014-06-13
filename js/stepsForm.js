@@ -8,7 +8,7 @@
  * Copyright 2014, Codrops
  * http://www.codrops.com
  */
-;( function( window ) {
+;( function( window, document, Modernizr, classie ) {
 	
 	'use strict';
 
@@ -257,4 +257,4 @@
 	// add to global namespace
 	window.stepsForm = stepsForm;
 
-})( window );
+})( window, document, Modernizr, classie );
