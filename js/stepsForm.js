@@ -74,7 +74,10 @@
 		// checks for HTML5 Form Validation support
 		// a cleaner solution might be to add form validation to the custom Modernizr script
 		this.supportsHTML5Forms = typeof document.createElement("input").checkValidity === 'function';
-		
+
+		// get reset button
+		this.reset = this._findResetButton();
+
 		// init events
 		this._initEvents();
 	};
@@ -87,7 +90,7 @@
 			onFocusStartFn = function() {
 				firstElInput.removeEventListener( 'focus', onFocusStartFn );
 				classie.addClass( self.ctrlNext, 'show' );
-			};
+			}
 
 		// show the next question control first time the input gets focused
 		firstElInput.addEventListener( 'focus', onFocusStartFn );
@@ -99,6 +102,7 @@
 		} );
 
 		// pressing enter will jump to next question
+		// pressing esc will reset the form
 		document.addEventListener( 'keydown', function( ev ) {
 			var keyCode = ev.keyCode || ev.which;
 			// enter
@@ -106,6 +110,11 @@
 				ev.preventDefault();
 				self._nextQuestion();
 			}
+			// esc
+			if( keyCode === 27 ) {
+				ev.preventDefault();
+				self._reset();
+			} 
 		} );
 
 		// disable tab
@@ -116,6 +125,14 @@
 				ev.preventDefault();
 			} 
 		} );
+
+		// add a handler for the start over button
+		if ( self.reset ) {
+			self.reset.addEventListener( 'click', function( ev ) {
+				ev.preventDefault();
+				self._reset();
+			});
+		}
 	};
 
 	stepsForm.prototype._nextQuestion = function() {
@@ -145,9 +162,6 @@
 		if( this.current === this.questionsCount - 1 ) {
 			this.isFilled = true;
 		}
-
-		// clear any previous error messages
-		this._clearError();
 
 		// current question
 		var currentQuestion = this.questions[ this.current ];
@@ -187,6 +201,8 @@
 					self.questionStatus.removeChild( self.nextQuestionNum );
 					// force the focus on the next input
 					nextQuestion.querySelector( 'input' ).focus();
+					// clear any previous error messages
+					self._clearError();
 				}
 			};
 
@@ -216,6 +232,31 @@
 	// submits the form
 	stepsForm.prototype._submit = function() {
 		this.options.onSubmit( this.el );
+	}
+
+	// resets the form
+	stepsForm.prototype._reset = function() {
+		this.el.reset();
+		classie.removeClass( this.el.querySelector( '.current' ), 'current' );
+		classie.removeClass( this.el, 'show-next' );
+		this._init();
+		this._progress();
+		this._clearError();
+		//// force the focus on the next input
+		this.el.querySelector( 'input' ).focus();
+	}
+
+	// returns the reset element by type=reset or defined by "reset" class
+	stepsForm.prototype._findResetButton = function() {
+		var self = this.el;
+		[].forEach.call(
+			self.querySelectorAll( 'input, button' ),
+			function( el ) {
+				if ( el.type === 'reset' )
+					return el;
+			}
+		);
+		return document.querySelector( '.reset' );
 	}
 
 	// TODO (next version..)
