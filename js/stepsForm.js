@@ -123,24 +123,6 @@
 			return false;
 		}
 
-		// checks HTML5 validation
-		if ( this.supportsHTML5Forms ) {
-		    	var input = this.questions[ this.current ].querySelector( 'input' );
-			// clear any previous error messages
-			input.setCustomValidity( '' );
-			
-			// checks input against the validation constraint
-			if ( !input.checkValidity() ) {
-				// Optionally, set a custom HTML5 valiation message
-				// comment or remove this line to use the browser default message
-				input.setCustomValidity( 'Whoops, that\'s not an email address!' );
-				// display the HTML5 error message
-				this._showError( input.validationMessage );
-				// prevent the question from changing
-				return false;
-			}
-		}
-
 		// check if form is filled
 		if( this.current === this.questionsCount - 1 ) {
 			this.isFilled = true;
@@ -222,10 +204,27 @@
 	// the validation function
 	stepsForm.prototype._validate = function() {
 		// current question´s input
-		var input = this.questions[ this.current ].querySelector( 'input' ).value;
-		if( input === '' ) {
+		var input = this.questions[ this.current ].querySelector( 'input' );
+		if( input.value === '' && input.required ) {
 			this._showError( 'EMPTYSTR' );
 			return false;
+		}
+
+		// checks HTML5 validation
+		if ( this.supportsHTML5Forms ) {
+			// clear any previous error messages
+			input.setCustomValidity( '' );
+			
+			// checks input against the validation constraint
+			if ( !input.checkValidity() ) {
+				// Optionally, set a custom HTML5 valiation message
+				// comment or remove this line to use the browser default message
+				input.setCustomValidity( 'Whoops, that\'s not an email address!' );
+				// display the HTML5 error message
+				this._showError( input.validationMessage );
+				// prevent the question from changing
+				return false;
+			}
 		}
 
 		return true;
